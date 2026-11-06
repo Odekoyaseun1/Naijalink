@@ -1,0 +1,34 @@
+# General
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+# IDEs
+.idea/
+.vscode/
+
+# Android
+/android/local.properties
+/android/key.properties
+/android/.gradle/
+/android/captures/
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# iOS
+/ios/Flutter/.last_build_id
+/ios/Runner/GeneratedPluginRegistrant.*
+/ios/Pods/
+/ios/.symlinks/
+/ios/Flutter/ephemeral/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
