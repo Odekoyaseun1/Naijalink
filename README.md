@@ -19,6 +19,28 @@ flutter build apk --release
 
 The APK will be generated at `build/app/outputs/flutter-apk/app-release.apk`. It is not built or signed by this repository setup, so there is no download link yet.
 
+## Firebase setup
+
+This repo now includes the Firebase-ready app structure for a real backend.
+
+1. Create or select an existing Firebase project in the Firebase console.
+2. In the project root, install the Firebase tooling and connect the app:
+
+```sh
+npm install -g firebase-tools
+firebase login
+flutter pub global activate flutterfire_cli
+flutterfire configure
+```
+
+3. When prompted, select your Firebase project and the target platform(s).
+4. The generated `lib/firebase_options.dart` file will replace the placeholder config included in this starter.
+5. Run the app again:
+
+```sh
+flutter run
+```
+
 ## Current starter
 
 - Responsive marketplace home screen with search, categories, example products, and nearby rider cards.
@@ -26,10 +48,11 @@ The APK will be generated at `build/app/outputs/flutter-apk/app-release.apk`. It
 - Demo navigation for home, explore, deliveries, and profile.
 - Demo role selector for buyer, seller, rider, and admin dashboard previews.
 - Green, white, and orange visual identity with a location/link-inspired app icon.
+- Firebase-ready project layout for auth, Firestore, storage, and cloud functions.
 
 ## Planned production work
 
-This starter is a front-end demo with sample data. It does **not** yet process payments, verify NIN, authenticate users, create real orders, scan QR codes, transmit live location, or issue bank payouts. Those require backend services, approved providers, credentials stored securely outside the app, and privacy/security review.
+This starter is a front-end demo with sample data. It does **not** yet process payments, verify NIN, authenticate users, create real orders, scan QR codes, transmit live location, or issue bank payouts.
 
 Next implementation milestones:
 1. Add backend/API, account registration and role-based access.

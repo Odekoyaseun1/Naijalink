@@ -1,6 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+import 'services/firebase_service.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseService.initialize();
   runApp(const NaijaLinkApp());
 }
 
@@ -32,7 +37,68 @@ class NaijaLinkApp extends StatelessWidget {
         ),
         fontFamily: 'Roboto',
       ),
-      home: const MarketplaceShell(),
+      home: FirebaseService.isInitialized
+          ? const MarketplaceShell()
+          : const FirebaseSetupScreen(),
+    );
+  }
+}
+
+class FirebaseSetupScreen extends StatelessWidget {
+  const FirebaseSetupScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+                side: BorderSide(color: Colors.grey.shade200),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Firebase setup needed',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: NaijaLinkApp.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'The app is ready for Firebase, but the project configuration has not been generated yet. Run `flutterfire configure` in the repository root to create `lib/firebase_options.dart` and connect the app to your Firebase project.',
+                      style: TextStyle(color: Colors.black54, height: 1.5),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Run flutterfire configure to generate the Firebase config.'),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.sync),
+                      label: const Text('Generate config'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -128,7 +194,13 @@ class HomePage extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13)),
-                        child: const Row(children: [Icon(Icons.search, color: NaijaLinkApp.green), SizedBox(width: 9), Text('Search products or sellers', style: TextStyle(color: Colors.black54)), Spacer(), Icon(Icons.tune, color: NaijaLinkApp.green)]),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.search, color: NaijaLinkApp.green),
+                            SizedBox(width: 9),
+                            Text('Search products or sellers', style: TextStyle(color: Colors.black54)),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -141,16 +213,16 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: _DeliveryOption(icon: Icons.flash_on_rounded, title: 'Local delivery', subtitle: 'Around Ibadan', color: NaijaLinkApp.green, onTap: () => _notice(context, 'Local delivery selected. Live rider matching will be added next.'))),
+                Expanded(child: _DeliveryOption(icon: Icons.flash_on_rounded, title: 'Local delivery', subtitle: 'Around Ibadan', color: NaijaLinkApp.green, onTap: () => _notice(context, 'Local delivery will be connected to Live Firestore orders next.'))),
                 const SizedBox(width: 12),
-                Expanded(child: _DeliveryOption(icon: Icons.directions_bus_filled, title: 'Inter-state', subtitle: 'Choose a park', color: NaijaLinkApp.orange, onTap: () => _notice(context, 'Inter-state delivery: choose a destination state and approved park.'))),
+                Expanded(child: _DeliveryOption(icon: Icons.directions_bus_filled, title: 'Inter-state', subtitle: 'Choose a park', color: NaijaLinkApp.orange, onTap: () => _notice(context, 'Inter-state logistics are scheduled for later milestones.'))),
               ]),
               const SizedBox(height: 23),
               const SectionTitle('Shop by category'),
               const SizedBox(height: 12),
-              const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [CategoryChip(icon: Icons.restaurant, label: 'Food'), CategoryChip(icon: Icons.checkroom, label: 'Fashion'), CategoryChip(icon: Icons.medical_services_outlined, label: 'Health'), CategoryChip(icon: Icons.menu_book, label: 'Books')]),
+              const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [CategoryChip(icon: Icons.restaurant, label: 'Food'), CategoryChip(icon: Icons.checkroom, label: 'Fashion'), CategoryChip(icon: Icons.local_pharmacy, label: 'Drugs'), CategoryChip(icon: Icons.menu_book, label: 'Books')]),
               const SizedBox(height: 24),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const SectionTitle('Popular near you'), TextButton(onPressed: () => _notice(context, 'Explore the full catalog.'), child: const Text('See all'))]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const SectionTitle('Popular near you'), TextButton(onPressed: () => _notice(context, 'Explore the full catalog.'), child: Text('See all'))]),
               const SizedBox(height: 5),
               SizedBox(
                 height: 224,
@@ -172,7 +244,7 @@ class HomePage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(color: const Color(0xFFFFF3E7), borderRadius: BorderRadius.circular(16)),
-                child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.info_outline, color: NaijaLinkApp.orange), SizedBox(width: 10), Expanded(child: Text('Sample rider listings for the app preview. Real availability, ratings, pricing, and live locations are not connected yet.', style: TextStyle(color: NaijaLinkApp.ink, fontSize: 12, height: 1.4)))]),
+                child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.info_outline, color: NaijaLinkApp.orange), SizedBox(width: 10), Expanded(child: Text('Sample rider and catalog data is a placeholder. Real Firestore-backed catalog and trip data will replace it.'))]),
               ),
             ]),
           ),
@@ -279,6 +351,7 @@ class BrandMark extends StatelessWidget {
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.text, {super.key});
   final String text;
+
   @override
   Widget build(BuildContext context) => Text(text, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: NaijaLinkApp.ink));
 }
@@ -298,7 +371,13 @@ class _DeliveryOption extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(17), border: Border.all(color: const Color(0xFFE8ECE9))),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Container(width: 39, height: 39, decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: color)), const SizedBox(height: 12), Text(title, style: const TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 3), Text(subtitle, style: const TextStyle(color: Colors.black54, fontSize: 12))]),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(width: 39, height: 39, decoration: BoxDecoration(color: color.withOpacity(.1), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: color)),
+            const SizedBox(height: 12),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: NaijaLinkApp.ink)),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          ]),
         ),
       );
 }
@@ -307,8 +386,13 @@ class CategoryChip extends StatelessWidget {
   const CategoryChip({super.key, required this.icon, required this.label});
   final IconData icon;
   final String label;
+
   @override
-  Widget build(BuildContext context) => Column(children: [Container(width: 58, height: 58, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFE8ECE9))), child: Icon(icon, color: NaijaLinkApp.green)), const SizedBox(height: 6), Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600))]);
+  Widget build(BuildContext context) => Column(children: [
+        Container(width: 58, height: 58, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFE8ECE9))), child: Icon(icon, color: NaijaLinkApp.green)),
+        const SizedBox(height: 7),
+        Text(label, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+      ]);
 }
 
 class ProductCard extends StatelessWidget {
@@ -325,7 +409,21 @@ class ProductCard extends StatelessWidget {
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(17), border: Border.all(color: const Color(0xFFE8ECE9))),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: Container(width: double.infinity, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(13)), child: Icon(icon, size: 43, color: NaijaLinkApp.ink))), const SizedBox(height: 9), Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text(seller, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black54, fontSize: 11)), const SizedBox(height: 4), Text(price, style: const TextStyle(color: NaijaLinkApp.green, fontWeight: FontWeight.w800))]),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(14)),
+              child: Icon(icon, size: 42, color: NaijaLinkApp.green),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: NaijaLinkApp.ink)),
+          const SizedBox(height: 4),
+          Text(seller, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          const Spacer(),
+          Text(price, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: NaijaLinkApp.green)),
+        ]),
       );
 }
 
@@ -341,7 +439,25 @@ class RiderTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 9),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: const Color(0xFFE8ECE9))),
-        child: Row(children: [CircleAvatar(backgroundColor: const Color(0xFFE4F2E9), child: Text(name.substring(0, 1), style: const TextStyle(color: NaijaLinkApp.green, fontWeight: FontWeight.bold))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: const TextStyle(fontWeight: FontWeight.w700)), Text(deliveries, style: const TextStyle(color: Colors.black54, fontSize: 11))])), const Icon(Icons.star, color: NaijaLinkApp.orange, size: 17), Text(rating, style: const TextStyle(fontWeight: FontWeight.w700)), const SizedBox(width: 12), Text(eta, style: const TextStyle(color: NaijaLinkApp.green, fontWeight: FontWeight.w700, fontSize: 12))]),
+        child: Row(children: [
+          CircleAvatar(backgroundColor: const Color(0xFFE4F2E9), child: Text(name.substring(0, 1), style: const TextStyle(color: NaijaLinkApp.green, fontWeight: FontWeight.bold))),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(name, style: const TextStyle(fontWeight: FontWeight.w700, color: NaijaLinkApp.ink)),
+              Text('$deliveries • ETA $eta', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+            ]),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(color: const Color(0xFFEAF8EE), borderRadius: BorderRadius.circular(999)),
+            child: Row(children: [
+              const Icon(Icons.star_rounded, size: 14, color: NaijaLinkApp.orange),
+              const SizedBox(width: 4),
+              Text(rating, style: const TextStyle(fontWeight: FontWeight.w700, color: NaijaLinkApp.green)),
+            ]),
+          ),
+        ]),
       );
 }
 
@@ -350,8 +466,14 @@ class _ProfileOption extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+
   @override
-  Widget build(BuildContext context) => ListTile(contentPadding: const EdgeInsets.symmetric(vertical: 4), leading: Icon(icon, color: NaijaLinkApp.green), title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)), subtitle: Text(subtitle), isThreeLine: true);
+  Widget build(BuildContext context) => ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 4),
+        leading: Icon(icon, color: NaijaLinkApp.green),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: NaijaLinkApp.ink)),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.black54)),
+      );
 }
 
 void _notice(BuildContext context, String message) {
